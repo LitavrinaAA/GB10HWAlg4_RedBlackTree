@@ -14,6 +14,19 @@ public class RBTree<V extends Comparable<V>> {
             this.value = value;
 
         }
+        // так и не поняла что с этим делать и к чему это...
+//        public boolean contains(V value) {
+//            Tree.Node node = root;
+//            while (node != null) {
+//                if (node.value.equals(value))
+//                    return true;
+//                if (node.value.compareTo(value) > 0)
+//                    node = node.left;
+//                else
+//                    node = node.right;
+//            }
+//            return false;
+//        }
         public boolean isLeftChild() {
             return this == parent.leftChild;
         }
@@ -34,47 +47,52 @@ public class RBTree<V extends Comparable<V>> {
     }
 
     public RBTree<V> insert(V data) {
-        Node node = new Node(data);
-        root = insert(root, node);
-        recolorAndRotate(node);
+        Node node = new Node(data); //создам ноду со значением
+        root = insert(root, node);//начиная с корня найдем куда вставить
+        recolorAndRotate(node); // все, ноду вставили и теперь ужас перекраска
         return this;
     }
     private Node insert(Node node, Node nodeToInsert) {
-        if (node == null) {
+        if (node == null) { // если узел пустой, то заполнм его, если нет, то ...
             return nodeToInsert;
         }
-        if (nodeToInsert.value.compareTo(node.value) < 0) {
-            node.leftChild = insert(node.leftChild, nodeToInsert);
-            node.leftChild.parent = node;
+        if (nodeToInsert.value.compareTo(node.value) < 0) { // то возьмем у этой ноды левого или правого ребенка
+            node.leftChild = insert(node.leftChild, nodeToInsert); // и его так же отправим в insert, где так же проверим (рекурсия)
+            node.leftChild.parent = node;//запишем левому ребенку эту ноду как родителя
         } else if (nodeToInsert.value.compareTo(node.value) > 0) {
             node.rightChild = insert(node.rightChild, nodeToInsert);
             node.rightChild.parent = node;
         }
         return node;
     }
+    //"Дядя" узла играет важную роль при выполнении поворотов и перекраски узлов
+    // для восстановления свойств красно-черного дерева после вставки узла.
+    // Например, при выполнении операции вставки или удаления узла,
+    // анализ "дяди" помогает определить, какие действия должны быть предприняты,
+    // чтобы сохранить баланс и соблюсти свойства красно-черного дерева.
     private void recolorAndRotate(Node node) {
         Node parent = node.parent;
-        if (node != root && parent.color == Color.Red) {
-            Node grandParent = node.parent.parent;
-            Node uncle = parent.isLeftChild() ?
+        if (node != root && parent.color == Color.Red) { //если не корень и красный
+            Node grandParent = node.parent.parent; //дедушка
+            Node uncle = parent.isLeftChild() ? //дядя ( Красные ноды могут быть только левым дочерним элементом)
                     grandParent.rightChild : grandParent.leftChild;
             if (uncle != null && uncle.color == Color.Red) { // перекрасить
                 handleRecoloring(parent, uncle, grandParent);
             } else if (parent.isLeftChild()) { // Left-Left  Left-Right
-                handleLeftSituations(node, parent, grandParent);
+                handleLeftSituations(node, parent, grandParent);//история с левыми
             } else if (!parent.isLeftChild()) { // Right-Right  Right-Left
-                handleRightSituations(node, parent, grandParent);
+                handleRightSituations(node, parent, grandParent);//история с НЕ левыми
             }
         }
-        root.color = Color.Black; // Color the root node black
+        root.color = Color.Black; // root - black
     }
 
     private void handleRightSituations(Node node, Node parent, Node grandParent) {
         if (node.isLeftChild()) {
             rotateRight(parent);
         }
-        parent.flipColor();
-        grandParent.flipColor();
+        parent.flipColor(); //просто смена цвета
+        grandParent.flipColor(); // и у дедушки
         rotateLeft(grandParent);
         recolorAndRotate(node.isLeftChild() ? grandParent : parent);
     }
@@ -127,19 +145,6 @@ public class RBTree<V extends Comparable<V>> {
             node.parent.leftChild = tempNode;
         } else {
             node.parent.rightChild = tempNode;
-        }
-    }
-
-
-    public void traverse() {
-        traverseInOrder(root);
-    }
-
-    private void traverseInOrder(Node node) {
-        if (node != null) {
-            traverseInOrder(node.leftChild);
-            System.out.println(node);
-            traverseInOrder(node.rightChild);
         }
     }
 
