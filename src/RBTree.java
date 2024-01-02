@@ -2,6 +2,7 @@ import java.util.HashMap;
 
 public class RBTree<V extends Comparable<V>> {
     private Node root;
+
     private class Node {
         private V value;
         private RBTree<V>.Node parent;
@@ -12,8 +13,11 @@ public class RBTree<V extends Comparable<V>> {
 
         public Node(V value) {
             this.value = value;
-
+            leftChild = null;
+            rightChild = null;
+            color = Color.Red;
         }
+
         // так и не поняла что с этим делать и к чему это...
 //        public boolean contains(V value) {
 //            Tree.Node node = root;
@@ -30,18 +34,18 @@ public class RBTree<V extends Comparable<V>> {
         public boolean isLeftChild() {
             return this == parent.leftChild;
         }
+
         public void flipColor() {
-           color = ( color == Color.Red?Color.Black:Color.Red);
+            color = (color == Color.Red ? Color.Black : Color.Red);
         }
 
         @Override
         public String toString() {
             return "Node{" +
                     "value=" + value +
+                    ", color=" + color +
                     ", leftChild=" + leftChild +
                     ", rightChild=" + rightChild +
-                    ", prev=" + prev +
-                    ", color=" + color +
                     '}';
         }
     }
@@ -52,6 +56,7 @@ public class RBTree<V extends Comparable<V>> {
         recolorAndRotate(node); // все, ноду вставили и теперь ужас перекраска
         return this;
     }
+
     private Node insert(Node node, Node nodeToInsert) {
         if (node == null) { // если узел пустой, то заполнм его, если нет, то ...
             return nodeToInsert;
@@ -65,22 +70,25 @@ public class RBTree<V extends Comparable<V>> {
         }
         return node;
     }
+
     //"Дядя" узла играет важную роль при выполнении поворотов и перекраски узлов
     // для восстановления свойств красно-черного дерева после вставки узла.
     // Например, при выполнении операции вставки или удаления узла,
     // анализ "дяди" помогает определить, какие действия должны быть предприняты,
     // чтобы сохранить баланс и соблюсти свойства красно-черного дерева.
     private void recolorAndRotate(Node node) {
-        Node parent = node.parent;
-        if (node != root && parent.color == Color.Red) { //если не корень и красный
+        Node parent = node.parent; //берем родителя этой ноды
+        if (node != root && parent.color == Color.Red) { //если не корень и красный родитель
             Node grandParent = node.parent.parent; //дедушка
             Node uncle = parent.isLeftChild() ? //дядя ( Красные ноды могут быть только левым дочерним элементом)
-                    grandParent.rightChild : grandParent.leftChild;
-            if (uncle != null && uncle.color == Color.Red) { // перекрасить
-                handleRecoloring(parent, uncle, grandParent);
-            } else if (parent.isLeftChild()) { // Left-Left  Left-Right
+                    grandParent.rightChild : grandParent.leftChild;//у дедушки узнаем кто дядя
+            //1-ый случай: папа и дядя красные -> перекрашиваем
+            if (uncle != null && uncle.color == Color.Red) { // и дядя красный? - перекрашиваем!
+                handleRecoloring(parent, uncle, grandParent);//и мой родитель и дядя красный?! значит и дедушку перекрасим. Всех перекрасить.
+            //2-ой папа красный, дядя нет -> поворот и перекрашиваем папу и деда
+            } else if (parent.isLeftChild()) { // красный левый родитель  дядя не красный
                 handleLeftSituations(node, parent, grandParent);//история с левыми
-            } else if (!parent.isLeftChild()) { // Right-Right  Right-Left
+            } else if (!parent.isLeftChild()) { // красный правый родитель  дядя не красный
                 handleRightSituations(node, parent, grandParent);//история с НЕ левыми
             }
         }
@@ -89,20 +97,20 @@ public class RBTree<V extends Comparable<V>> {
 
     private void handleRightSituations(Node node, Node parent, Node grandParent) {
         if (node.isLeftChild()) {
-            rotateRight(parent);
+            rotateRight(parent);//если нода левая, то повернем родителя вправо
         }
         parent.flipColor(); //просто смена цвета
         grandParent.flipColor(); // и у дедушки
-        rotateLeft(grandParent);
+        rotateLeft(grandParent);//деда на лево
         recolorAndRotate(node.isLeftChild() ? grandParent : parent);
     }
 
     private void handleLeftSituations(Node node, Node parent, Node grandParent) {
         if (!node.isLeftChild()) {
-            rotateLeft(parent);
+            rotateLeft(parent); //родителя на лево
         }
         parent.flipColor();
-        grandParent.flipColor();
+        grandParent.flipColor();//деда на право
         rotateRight(grandParent);
         recolorAndRotate(node.isLeftChild() ? parent : grandParent);
     }
@@ -123,7 +131,7 @@ public class RBTree<V extends Comparable<V>> {
         leftNode.rightChild = node;
         leftNode.parent = node.parent;
         updateChildrenOfParentNode(node, leftNode);
-        node.parent = leftNode;
+        node.parent = leftNode; //левую ноду в родители
     }
 
     private void rotateLeft(Node node) {
@@ -134,11 +142,11 @@ public class RBTree<V extends Comparable<V>> {
         }
         rightNode.leftChild = node;
         rightNode.parent = node.parent;
-        updateChildrenOfParentNode(node, rightNode);
-        node.parent = rightNode;
+        updateChildrenOfParentNode(node, rightNode);//перепись родителя в дети ноды, которая теперь станет родителем
+        node.parent = rightNode;//правую ноду в родители
     }
 
-    private void updateChildrenOfParentNode(Node node, Node  tempNode) {
+    private void updateChildrenOfParentNode(Node node, Node tempNode) {
         if (node.parent == null) {
             root = tempNode;
         } else if (node.isLeftChild()) {
@@ -146,6 +154,9 @@ public class RBTree<V extends Comparable<V>> {
         } else {
             node.parent.rightChild = tempNode;
         }
+    }
+    public void print() {
+        System.out.println(root);
     }
 
 
