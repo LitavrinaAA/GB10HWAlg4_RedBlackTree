@@ -18,7 +18,8 @@ public class RBTree<V extends Comparable<V>> {
             color = Color.Red;
         }
 
-        // так и не поняла что с этим делать и к чему это...
+        // так и не поняла как этот кусок встроить и куда :(((
+        // в инсерте реализовала сравнение, сразу при вставке
 //        public boolean contains(V value) {
 //            Tree.Node node = root;
 //            while (node != null) {
